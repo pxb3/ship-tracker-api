@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // Generate client at project root `generated/prisma` so imports like
+  // `import { PrismaClient } from '../../generated/prisma'` resolve correctly.
+  // schema.prisma is at `src/shared/prisma/schema.prisma`, so go up three levels
+  // to the project root and into `generated/prisma`.
+  output   = "../../../generated/prisma"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+generator nestgraphql {
+  provider = "node node_modules/prisma-nestjs-graphql"
+  output   = "../src/shared/prismagraphql"
+  reExport = Directories
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  REGULAR
+  VIEWER
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  role          UserRole       @default(REGULAR)
+  refreshTokens RefreshToken[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Ship {
+  id                 String          @id
+  mmsi               String?
+  shipName           String          @default("")
+  latitude           Float           @default(0)
+  longitude          Float           @default(0)
+  rateOfTurn         Float           @default(0)
+  trueHeading        Int             @default(0)
+  cog                Float           @default(0)
+  sog                Float           @default(0)
+  navigationalStatus Int             @default(15)
+  timestamp          DateTime        @default(now())
+  lastSeenAt         DateTime        @default(now())
+  ShipStaticData     ShipStaticData?
+}
+
+model ShipStaticData {
+  id     String @id
+  shipId String @unique
+  ship   Ship   @relation(fields: [shipId], references: [id])
+
+  callSign    String?
+  destination String?
+
+  dimensionA Int @default(0)
+  dimensionB Int @default(0)
+  dimensionC Int @default(0)
+  dimensionD Int @default(0)
+
+  etaDay    Int?
+  etaHour   Int?
+  etaMinute Int?
+  etaMonth  Int?
+
+  maximumStaticDraught Float   @default(0)
+  name                 String  @default("")
+  valid                Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ArchivedShip {
+  id                 String                  @id
+  mmsi               String?
+  shipName           String                  @default("")
+  latitude           Float                   @default(0)
+  longitude          Float                   @default(0)
+  rateOfTurn         Float                   @default(0)
+  trueHeading        Int                     @default(0)
+  cog                Float                   @default(0)
+  sog                Float                   @default(0)
+  navigationalStatus Int                     @default(15)
+  timestamp          DateTime                @default(now())
+  lastSeenAt         DateTime                @default(now())
+  archivedAt         DateTime                @default(now())
+  ArchivedShipStaticData ArchivedShipStaticData?
+}
+
+model ArchivedShipStaticData {
+  id            String       @id
+  archivedShipId String      @unique
+  archivedShip   ArchivedShip @relation(fields: [archivedShipId], references: [id])
+
+  callSign    String?
+  destination String?
+
+  dimensionA Int @default(0)
+  dimensionB Int @default(0)
+  dimensionC Int @default(0)
+  dimensionD Int @default(0)
+
+  etaDay    Int?
+  etaHour   Int?
+  etaMinute Int?
+  etaMonth  Int?
+
+  maximumStaticDraught Float   @default(0)
+  name                 String  @default("")
+  valid                Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archivedAt DateTime @default(now())
+}

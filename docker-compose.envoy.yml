@@ -1,0 +1,68 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    container_name: backend
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - SHIP_GRPC_PORT=50051
+      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_WAIT_MAX_ATTEMPTS=30
+      - REDIS_WAIT_SLEEP_MS=1000
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+      - "50051"
+    networks:
+      - stp_net
+    restart: unless-stopped
+    volumes:
+      - ./src:/app/src      # Host ./src mapped to /app/src in container
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7
+    container_name: stp-redis
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - redis-data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stp_net
+
+  envoy:
+    image: envoyproxy/envoy:v1.28-latest
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    # start envoy with debug logging to get more detailed runtime info
+    command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--log-level", "debug"]
+    ports:
+      - "8085:8085" # grpc-web port exposed to browser
+      - "9901:9901" # admin
+    depends_on:
+      - backend
+    networks:
+      - stp_net
+    restart: unless-stopped
+
+networks:
+  stp_net:
+    driver: bridge
+
+volumes:
+  redis-data:
