@@ -7,8 +7,6 @@ RUN apt-get update -y && apt-get install -y openssl ca-certificates redis-tools 
 	&& npm ci
 
 # copy everything
-
-# copy everything
 COPY . .
 
 # add wait-for-redis entrypoint script
@@ -24,11 +22,9 @@ RUN rm -rf ./generated/prisma
 RUN npx prisma generate --schema=./src/shared/prisma/schema.prisma
 
 ENV NODE_ENV=development
-ENV PORT=8080
-ENV SHIP_GRPC_PORT=50051
 ENV TZ=Europe/Athens
-EXPOSE 8080 50051
+# no EXPOSE: this process makes only outbound connections (AIS websocket, Redis, Postgres)
 
-# run the DATABASE_URL assembly wrapper, then wait-for-redis, then Nest in watch/dev mode
+# run the DATABASE_URL assembly wrapper, then wait-for-redis, then the ingestion worker
 ENTRYPOINT ["/bin/sh", "/usr/local/bin/assemble-database-url.sh", "/bin/sh", "/usr/local/bin/wait-for-redis.sh"]
-CMD ["npm", "run", "start:dev"]
+CMD ["npm", "run", "start:ingestion:dev"]

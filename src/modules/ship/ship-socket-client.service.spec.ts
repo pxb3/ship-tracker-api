@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import WebSocket from 'ws';
 import { ShipSocketClientService } from './ship-socket-client.service';
-import { ShipService } from './ship.service';
+import { ShipIngestionService } from './ship-ingestion.service';
 
 jest.mock('ws', () => {
   const { EventEmitter } = require('events');
@@ -27,7 +27,7 @@ const MockWebSocketCtor = WebSocket as unknown as { instances: any[] };
 
 describe('ShipSocketClientService', () => {
   let service: ShipSocketClientService;
-  let shipService: {
+  let shipIngestion: {
     processPositionReport: jest.Mock;
     processStaticData: jest.Mock;
     flushToRedis: jest.Mock;
@@ -39,7 +39,7 @@ describe('ShipSocketClientService', () => {
     jest.useFakeTimers();
     (MockWebSocketCtor as any).instances = [];
 
-    shipService = {
+    shipIngestion = {
       processPositionReport: jest.fn(),
       processStaticData: jest.fn(),
       flushToRedis: jest.fn().mockResolvedValue(undefined),
@@ -50,7 +50,7 @@ describe('ShipSocketClientService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ShipSocketClientService,
-        { provide: ShipService, useValue: shipService },
+        { provide: ShipIngestionService, useValue: shipIngestion },
       ],
     }).compile();
 
@@ -96,7 +96,7 @@ describe('ShipSocketClientService', () => {
     });
     socket.emit('message', message);
 
-    expect(shipService.processPositionReport).toHaveBeenCalledWith(
+    expect(shipIngestion.processPositionReport).toHaveBeenCalledWith(
       { MMSI: 111 },
       { Valid: true, Latitude: 1 },
     );
@@ -112,7 +112,7 @@ describe('ShipSocketClientService', () => {
     });
     socket.emit('message', message);
 
-    expect(shipService.processStaticData).toHaveBeenCalledWith({ UserID: 111, Name: 'Test' });
+    expect(shipIngestion.processStaticData).toHaveBeenCalledWith({ UserID: 111, Name: 'Test' });
   });
 
   it('ignores malformed JSON messages without throwing', () => {
@@ -120,8 +120,8 @@ describe('ShipSocketClientService', () => {
     const socket = latestSocket();
 
     expect(() => socket.emit('message', 'not-valid-json')).not.toThrow();
-    expect(shipService.processPositionReport).not.toHaveBeenCalled();
-    expect(shipService.processStaticData).not.toHaveBeenCalled();
+    expect(shipIngestion.processPositionReport).not.toHaveBeenCalled();
+    expect(shipIngestion.processStaticData).not.toHaveBeenCalled();
   });
 
   it('starts batch, persistence and activity-check timers that call into ShipService', () => {
@@ -129,9 +129,9 @@ describe('ShipSocketClientService', () => {
 
     jest.advanceTimersByTime(60_000);
 
-    expect(shipService.flushToRedis).toHaveBeenCalled();
-    expect(shipService.persistToDatabase).toHaveBeenCalled();
-    expect(shipService.checkShipActivity).toHaveBeenCalled();
+    expect(shipIngestion.flushToRedis).toHaveBeenCalled();
+    expect(shipIngestion.persistToDatabase).toHaveBeenCalled();
+    expect(shipIngestion.checkShipActivity).toHaveBeenCalled();
   });
 
   it('schedules a reconnect with backoff after the socket closes unexpectedly', () => {
@@ -156,7 +156,7 @@ describe('ShipSocketClientService', () => {
     jest.clearAllMocks();
     jest.advanceTimersByTime(100_000);
 
-    expect(shipService.flushToRedis).not.toHaveBeenCalled();
+    expect(shipIngestion.flushToRedis).not.toHaveBeenCalled();
     expect((MockWebSocketCtor as any).instances.length).toBe(1);
   });
 });

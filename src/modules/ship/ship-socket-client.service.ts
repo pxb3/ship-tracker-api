@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import WebSocket from 'ws';
-import { ShipService } from './ship.service';
+import { ShipIngestionService } from './ship-ingestion.service';
 
 @Injectable()
 export class ShipSocketClientService implements OnModuleInit, OnModuleDestroy {
@@ -24,7 +24,7 @@ export class ShipSocketClientService implements OnModuleInit, OnModuleDestroy {
   private activityCheckIntervalMs = Number(process.env.SHIP_ACTIVITY_CHECK_MS) || 1 * 60 * 1000;
   private activityCheckTimer: NodeJS.Timeout | null = null;
 
-  constructor(private readonly shipService: ShipService) {}
+  constructor(private readonly shipIngestion: ShipIngestionService) {}
 
   onModuleInit() {
     this.shouldReconnect = true;
@@ -32,17 +32,17 @@ export class ShipSocketClientService implements OnModuleInit, OnModuleDestroy {
 
     // Start batch flush timer for Redis writes
     if (!this.batchTimer) {
-      this.batchTimer = setInterval(() => void this.shipService.flushToRedis(), this.batchIntervalMs);
+      this.batchTimer = setInterval(() => void this.shipIngestion.flushToRedis(), this.batchIntervalMs);
     }
 
     // Start periodic persistence to DB
     if (!this.persistTimer) {
-      this.persistTimer = setInterval(() => void this.shipService.persistToDatabase(), this.persistIntervalMs);
+      this.persistTimer = setInterval(() => void this.shipIngestion.persistToDatabase(), this.persistIntervalMs);
     }
 
     // Start activity check timer
     if (!this.activityCheckTimer) {
-      this.activityCheckTimer = setInterval(() => void this.shipService.checkShipActivity(), this.activityCheckIntervalMs);
+      this.activityCheckTimer = setInterval(() => void this.shipIngestion.checkShipActivity(), this.activityCheckIntervalMs);
     }
   }
 
@@ -229,14 +229,14 @@ export class ShipSocketClientService implements OnModuleInit, OnModuleDestroy {
     if (aisMessage["MessageType"] === "ShipStaticData") {
       const staticData = aisMessage.Message.ShipStaticData || null;
       if (staticData) {
-        this.shipService.processStaticData(staticData);
+        this.shipIngestion.processStaticData(staticData);
       }
     }
 
     if (aisMessage["MessageType"] === "PositionReport") {
       const metaData = aisMessage.MetaData || null;
       const positionReport = aisMessage.Message.PositionReport || null;
-      this.shipService.processPositionReport(metaData, positionReport);
+      this.shipIngestion.processPositionReport(metaData, positionReport);
     }
   }
 }
