@@ -2,14 +2,14 @@
 import { Module } from '@nestjs/common';
 import { ShipService } from './ship.service';
 import { ShipResolver } from './ship.resolver';
-import { ShipRepository } from './ship.repository';
-import { ShipSocketClientService } from './ship-socket-client.service';
 import { ShipGrpcController } from './ship-grpc.controller';
 import { RedisModule } from 'src/shared/redis.module';
 
+// API-facing module: GraphQL + gRPC read paths only. Ingestion (websocket,
+// Redis/DB writes, archiving) lives in ShipIngestionModule (ingestion worker process).
 @Module({
   imports: [RedisModule],
   controllers: [ShipGrpcController],
-  providers: [ShipService, ShipRepository, ShipResolver, ShipSocketClientService],
+  providers: [ShipService, ShipResolver],
 })
 export class ShipModule {}

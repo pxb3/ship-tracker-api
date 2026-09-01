@@ -1,6 +1,5 @@
 import { Controller, Logger, Inject } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { ShipSocketClientService } from './ship-socket-client.service';
 import { RedisService } from 'src/shared/redis.service';
 
 type BBox = { minLat: number; minLon: number; maxLat: number; maxLon: number };
@@ -8,7 +7,7 @@ type BBox = { minLat: number; minLon: number; maxLat: number; maxLon: number };
 @Controller()
 export class ShipGrpcController {
   private readonly logger = new Logger(ShipGrpcController.name);
-  constructor(private readonly shipSocket: ShipSocketClientService, private redisService: RedisService) {}
+  constructor(private redisService: RedisService) {}
 
   // Unary method: return the latest ships inside the requested bbox
   @GrpcMethod('ShipService', 'Subscribe')

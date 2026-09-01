@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ShipGrpcController } from './ship-grpc.controller';
-import { ShipSocketClientService } from './ship-socket-client.service';
 import { RedisService } from 'src/shared/redis.service';
 
 describe('ShipGrpcController', () => {
@@ -27,7 +26,6 @@ describe('ShipGrpcController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ShipGrpcController],
       providers: [
-        { provide: ShipSocketClientService, useValue: {} },
         { provide: RedisService, useValue: redisService },
       ],
     }).compile();
