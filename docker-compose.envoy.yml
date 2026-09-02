@@ -2,6 +2,9 @@ version: '3.8'
 services:
   backend:
     build: .
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile.backend.development
     container_name: backend
     env_file: .env
     environment:
@@ -31,6 +34,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ingestion
+      #dockerfile: Dockerfile.ingestion.development
     container_name: backend-ingestion
     env_file: .env
     environment:

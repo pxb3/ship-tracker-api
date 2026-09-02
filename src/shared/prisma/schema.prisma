@@ -10,8 +10,7 @@ generator client {
   // `import { PrismaClient } from '../../generated/prisma'` resolve correctly.
   // schema.prisma is at `src/shared/prisma/schema.prisma`, so go up three levels
   // to the project root and into `generated/prisma`.
-  //output   = "../../../generated/prisma"
-  output   = "../node_modules/.prisma/client"
+  output   = "../../../generated/prisma"
   binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
 }
 
