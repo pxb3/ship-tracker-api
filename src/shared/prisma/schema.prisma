@@ -14,9 +14,18 @@ generator client {
   binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
 }
 
+// The prisma-nestjs-graphql generator below writes files that import types
+// (e.g. UserRole, Prisma namespace) from '@prisma/client'. Since the generator
+// above outputs elsewhere, this second generator populates the default
+// node_modules/@prisma/client location so those imports keep resolving.
+generator client_default {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
 generator nestgraphql {
   provider = "node node_modules/prisma-nestjs-graphql"
-  output   = "../src/shared/prismagraphql"
+  output   = "../prismagraphql"
   reExport = Directories
 }
 
