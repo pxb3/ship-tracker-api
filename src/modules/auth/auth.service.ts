@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
+import { requireEnv } from 'src/config/env.util';
 import * as bcrypt from 'bcrypt';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
@@ -105,7 +106,7 @@ export class AuthService {
     try {
       // Verify refresh token
       const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret_key',
+        secret: requireEnv('JWT_REFRESH_SECRET'),
       });
 
       // Check if refresh token exists in database
@@ -188,11 +189,11 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_SECRET || 'secret_key',
+        secret: requireEnv('JWT_SECRET'),
         expiresIn: '15m',
       }),
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret_key',
+        secret: requireEnv('JWT_REFRESH_SECRET'),
         expiresIn: '7d',
       }),
     ]);

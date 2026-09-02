@@ -1,11 +1,12 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import WebSocket from 'ws';
+import { requireEnv } from 'src/config/env.util';
 import { ShipIngestionService } from './ship-ingestion.service';
 
 @Injectable()
 export class ShipSocketClientService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ShipSocketClientService.name);
-  private API_KEY = process.env.SHIP_SOCKET_API_KEY || '';
+  private API_KEY = requireEnv('SHIP_SOCKET_API_KEY');
   private socket: WebSocket | null = null;
 
   // WebSocket connection state
@@ -113,7 +114,7 @@ export class ShipSocketClientService implements OnModuleInit, OnModuleDestroy {
         ],
       ],
     };
-    this.logger.debug('Sending subscription with API key: ' + this.API_KEY);
+    this.logger.debug('Sending subscription');
     try {
       this.socket.send(JSON.stringify(subscriptionMessage));
     } catch (err) {
