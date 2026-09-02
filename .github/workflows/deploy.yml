@@ -54,7 +54,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker buildx build --platform linux/arm64 \
-            -f Dockerfile \
+            -f Dockerfile.backend.development \
             -t "$REGISTRY/$REPOSITORY:$IMAGE_TAG" \
             -t "$REGISTRY/$REPOSITORY:latest" \
             --push .
@@ -111,7 +111,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker buildx build --platform linux/arm64 \
-            -f Dockerfile.ingestion \
+            -f Dockerfile.ingestion.development \
             -t "$REGISTRY/$REPOSITORY:$IMAGE_TAG" \
             -t "$REGISTRY/$REPOSITORY:latest" \
             --push .
