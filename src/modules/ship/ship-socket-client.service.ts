@@ -113,7 +113,7 @@ export class ShipSocketClientService implements OnModuleInit, OnModuleDestroy {
         ],
       ],
     };
-    this.logger.debug('Sending subscription');
+    this.logger.debug('Sending subscription with API key: ' + this.API_KEY);
     try {
       this.socket.send(JSON.stringify(subscriptionMessage));
     } catch (err) {
