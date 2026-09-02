@@ -21,7 +21,7 @@ RUN chmod +x /usr/local/bin/assemble-database-url.sh
 RUN rm -rf ./generated/prisma
 RUN npx prisma generate --schema=./src/shared/prisma/schema.prisma
 
-RUN npx nest build --entryFile ingestion-main
+RUN npx nest build --entryFile ingestion-main.ts
 
 ENV NODE_ENV=development
 ENV TZ=Europe/Athens
