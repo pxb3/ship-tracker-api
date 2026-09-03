@@ -17,6 +17,10 @@ RUN chmod +x /usr/local/bin/wait-for-redis.sh
 COPY docker/assemble-database-url.sh /usr/local/bin/assemble-database-url.sh
 RUN chmod +x /usr/local/bin/assemble-database-url.sh
 
+# add entrypoint script that applies pending Prisma migrations before startup
+COPY docker/run-migrations.sh /usr/local/bin/run-migrations.sh
+RUN chmod +x /usr/local/bin/run-migrations.sh
+
 # remove any host-generated prisma client and generate it for the container platform
 RUN rm -rf ./generated/prisma
 RUN npx prisma generate --schema=./src/shared/prisma/schema.prisma
@@ -25,6 +29,6 @@ ENV NODE_ENV=development
 ENV TZ=Europe/Athens
 # no EXPOSE: this process makes only outbound connections (AIS websocket, Redis, Postgres)
 
-# run the DATABASE_URL assembly wrapper, then wait-for-redis, then the ingestion worker
-ENTRYPOINT ["/bin/sh", "/usr/local/bin/assemble-database-url.sh", "/bin/sh", "/usr/local/bin/wait-for-redis.sh"]
+# run the DATABASE_URL assembly wrapper, then migrations, then wait-for-redis, then the ingestion worker
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/assemble-database-url.sh", "/bin/sh", "/usr/local/bin/run-migrations.sh", "/bin/sh", "/usr/local/bin/wait-for-redis.sh"]
 CMD ["npm", "run", "start:ingestion:dev"]
